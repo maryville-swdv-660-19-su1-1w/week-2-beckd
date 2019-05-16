@@ -26,7 +26,8 @@ class GameApiViewTests( TestCase ):
                 guesses_taken = self.expected_game_data['guesses_taken'],
                 letters_guessed = self.expected_game_data['letters_guessed'],
                 guessed_word_state = self.expected_game_data['guessed_word_state'],
-                is_game_over = self.expected_game_data['is_game_over']
+                is_game_over = self.expected_game_data['is_game_over'],
+                id = self.expected_game_data['id']
             )
 
         self.request_factory = APIRequestFactory()
@@ -37,7 +38,7 @@ class GameApiViewTests( TestCase ):
     def test_game_view_should_create_new_game_on_POST( self ):
         response = game_view( self.request_factory.post('dummy') )
 
-        self.assertEquals( response.status_code, 200)
+        self.assertEqual( response.status_code, 200)
         self.assertIsNotNone( response.data['id'] )
         self.assertTrue( response.data['id'] >= 0 )
 
@@ -52,8 +53,8 @@ class GameApiViewTests( TestCase ):
             response = game_view( mock_request, 25 )
             
             mock_get.assert_called_with( pk=25 )
-            self.assertEquals( response.status_code, 200 )
-            self.assertEquals( response.data['letters_guessed'], ['A','B'])
+            self.assertEqual( response.status_code, 200 )
+            self.assertEqual( response.data['letters_guessed'], ['A','B'])
 
     def test_game_view_should_reject_PUT_if_invalid( self ):
         with patch.object( Game.objects, 'get' ) as mock_get:
@@ -65,11 +66,25 @@ class GameApiViewTests( TestCase ):
             response = game_view( mock_request, 25 )
             
             mock_get.assert_called_with( pk=25 )
-            self.assertEquals( response.status_code, 400 )
+            self.assertEqual( response.status_code, 400 )
 
 
     ### GET solution view
     # TODO: Add tests for Getting a game's solution
     # HINT: remember the `setUp` fixture that is in this test class, 
     #   it constructs things that might be useful
+    def test_game_view_get_solution(self):
+        with patch.object( Game.objects, 'get' ) as mock_get:
+            self.mock_game.word = 'BATMAN'
+            mock_get.return_value = self.mock_game
 
+            my_Word = self.mock_game.word
+            response = {"solution" : my_Word }
+            self.assertTrue(response == {"solution" : "BATMAN" })
+    
+    def test_game_view_no_ID(self):
+        with patch.object( Game.objects, 'get' ) as mock_get:  
+            mock_get.return_value = self.mock_game
+            if mock_get.id == None:
+                self.assertEqual(self.mock_game.status_code, 400)
+                 

@@ -58,6 +58,9 @@ class Game(models.Model):
 
         self.__updateIsGameOver()
 
+    def get_Solution(self):
+        return self.word
+
 
 @receiver(pre_init, sender=Game)
 def __pre_init( sender, args, **kwargs ):
